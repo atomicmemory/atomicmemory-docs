@@ -1,0 +1,1 @@
+{"title":"Body","body":{"content":{"application/json":{"schema":{"properties":{"source_site":{"description":"Required. source_site.","minLength":1,"type":"string"},"user_id":{"description":"Required. user_id.","minLength":1,"type":"string"}},"required":["user_id","source_site"],"type":"object"}}},"required":true}}

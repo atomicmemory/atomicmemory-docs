@@ -1,0 +1,67 @@
+---
+id: update-config
+title: "Mutate runtime config (dev/test only). 410 when disabled."
+description: "Set CORE_RUNTIME_CONFIG_MUTATION_ENABLED=true to enable. Startup-only fields (embedding_provider/model, llm_provider/model) return 400 with a `rejected` array listing the offending fields."
+sidebar_label: "Mutate runtime config (dev/test only). 410 when disabled."
+hide_title: true
+hide_table_of_contents: true
+api: eJzdWM1uGzcQfpUBTw2y0cptctmiByV1UhX+gy2fDGNDLUdaJlxyQ3JlC4KAPkSfsE9SDLmy/laKk5xanyxqOL/ffDPUggl0hZW1l0azjN2gh3eX16f59e3FaHh+mr+7vHg//JCf344Go+HlRX56MXh7dvr7b942CN4Aaj5W2IMbz61v6ldGqzlMJCrh4CesxiiE1NO8tmYmBdq0MgJVAkpVO2cvwKJvrIbX/T48SF8Ch48WP2HhUXwEbi2fg5LOSz0FXyKYyQQ1KW/N9VjCTI2WUyhDwTLW1IJ7fGf0RE5Zwix+adD5t0bMWbZghdEetad/eV0rWYSL6SdHiVgwV5RY8fCtEJK+4urKkgEv0bFssUx2cnfdaC8rhCIYhKrxQWMPbhCh5FootDAxFl6f9IFrAavo7u6h5r4MEdQ7Jvy8RpYxMyZRtlwuYxzSomAZFSEcuNpoF66wn/v9b4puO4YByaJYxRAz6OAlTBqloDbOv4pn4DSvXWn8ntPRHrm3YNJjFc7aMJy3Uk/ZOq5QVvocDe47tJPUldUWLChgPIe0RK58CS8hjWIdPk1Re1nkFr2VOOMqj8AVG86NjVHIdfBGcSsnbdJyUqpk4XNfWnSlUZu3dFON0YZL1jiXoy6MQHtc/7oxAvY7M7TfPN1i2ks/z6eW1+Vxo+V8bKXIHXJbfEVU+tBHM3xuwqifD4ey2e2dAhV/XPll0TXKu84MW6y5tLkypj7uztrr2pqJVNhhdauT7jqudJZgv3Y74W3m4hlA6oz9UK2OF+YAFg4BMznSFN2pvt+jo4Rp45+R3BUlPPV5e3Ff43KPVp8oqeR6Grhohwt65Mfrb6Q9o/FywrK7Xb658VwLbgWgtcYC6hkqU2MvjCUib6nrxsOMKymC7ijoEnjTCjS64M209ICPBQa1gdjxkVd1BGK4QfPJoc2lAOngKVnLXeZqhb+W4Si2l8+EeenJKjslgbfcyYItkz2WlUWJNsS4ijjEcnU7gnR2klZYGSvRtfwKDyVqcB0jn1sEqQvVCBQ7UQv0XCqWsfdRdL+5oOBaGw9jjMMTBXAPtp0A//z1d5j7T/fSs7Nz2LhblBgdmMjHeHUirfPQOAyutFm/2lo7wKHCIhRSuq2QQhPEAR0SvM8F93vFWsXYxdMH6rhp5fkDs7P6ycr+hs6vISJuR9Q9y/uO5ht2oh0urzur/4AWwTWxYWNbnvzINkKL0gej8RtAuULLavuiqgrpAoEdAuR3Lr0dtjQInKUenSeXpTW6Qu3dFvwOeE9+Ym2xCLinOGtrRBOguc8K3wG045B5DhMfWHA3U0wpWPsdIPDmhxbS/xkfd7aYR6s5MZGdoY3+B32eTx3pij3axJcN6azQl4ZeOHVDDU2PB5axDlSxhEWtrmPUnZmCKwIsZZRw2nrAEtZY6ovS+zpLU0VypXE++6X/hngiYVS16/Vz6vQpl7Q76onpqCNWnJYNCB7OAfVU6tjPgyFsIML1oNWcrt41MDZCttz+583lxa8rvjE6TIQHaZFYnjaCz5gXPBK+kgVqFyqseUVFOB+OtoJzWZqaGrUzjS2wZ+w0bS+5lGSXa7IceFPJ4jw6/8dodAWDqyFLGOU2RnjS6/f6AS/G+YrrTbthmj3xRds/Pz1xBXHoi154FwYS2ySsrTRutNF//ane9oXHR5/WistAcqE0ixbQd2x2QvtxC+n18nifMIIjSSwWY+7w1qrlko6/NGjnLLu7T9iMW0nx0id6/CAPj4+7BfuMc5ZRU1EiX43IDxJXTZivu9xEy1K8MSiIP47Kbvbm1S2Bbdz+2kCJYxmz/IGmM39gGQu/VwTIk0A4WzDF9bThU5KNKunvX3VXO1I=
+sidebar_class_name: "put api-method"
+info_path: api-reference/http/atomicmemory-http-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Mutate runtime config (dev/test only). 410 when disabled."}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/v1/memories/config"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Set CORE_RUNTIME_CONFIG_MUTATION_ENABLED=true to enable. Startup-only fields (embedding_provider/model, llm_provider/model) return 400 with a `rejected` array listing the offending fields.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails>
+  
+</ParamsDetails>
+
+<RequestSchema
+  {...require("./update-config.RequestSchema.json")}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  {...require("./update-config.StatusCodes.json")}
+>
+  
+</StatusCodes>
+
+
+      

@@ -1,0 +1,59 @@
+/**
+ * Design tokens ported from Atomicmem-webapp (src/app/globals.css).
+ * Brand blue #3A60E4 is the icon color in logo-atomicmem.svg; the
+ * palette below is the Infima-flavored mapping of the webapp's
+ * `--brand-*` oklch tokens.
+ */
+
+:root {
+  /* Brand palette — #3A60E4 and shades */
+  --ifm-color-primary: #3a60e4;
+  --ifm-color-primary-dark: #2a52df;
+  --ifm-color-primary-darker: #244dd4;
+  --ifm-color-primary-darkest: #1e40af;
+  --ifm-color-primary-light: #5579e9;
+  --ifm-color-primary-lighter: #6a8aec;
+  --ifm-color-primary-lightest: #9db3f2;
+
+  /* Typography — mirror webapp: Work Sans display, Fira Mono for code */
+  --ifm-font-family-base:
+    'Work Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --ifm-font-family-monospace:
+    'Fira Mono', ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+  --ifm-heading-font-family: var(--ifm-font-family-base);
+  --ifm-font-color-base: #1e252e; /* webapp primary text */
+
+  /* Corners — webapp uses 0.625rem radius */
+  --ifm-global-radius: 0.625rem;
+  --ifm-button-border-radius: 0.625rem;
+  --ifm-card-border-radius: 0.625rem;
+
+  /* Code */
+  --ifm-code-font-size: 95%;
+  --docusaurus-highlighted-code-line-bg: rgba(58, 96, 228, 0.1);
+}
+
+[data-theme='dark'] {
+  /* Brighter blue for dark mode, same way the webapp lightens brand */
+  --ifm-color-primary: #6a8aec;
+  --ifm-color-primary-dark: #5579e9;
+  --ifm-color-primary-darker: #476fe7;
+  --ifm-color-primary-darkest: #3a60e4;
+  --ifm-color-primary-light: #829bef;
+  --ifm-color-primary-lighter: #9dafef;
+  --ifm-color-primary-lightest: #c5d0f8;
+
+  --ifm-font-color-base: #fafafa;
+
+  --docusaurus-highlighted-code-line-bg: rgba(106, 138, 236, 0.2);
+}
+
+/* Navbar — keep logo crisp, add subtle bottom border like webapp header */
+.navbar {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
+}
+[data-theme='dark'] .navbar {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+}

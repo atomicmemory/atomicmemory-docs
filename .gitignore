@@ -1,0 +1,15 @@
+node_modules/
+build/
+.docusaurus/
+.cache-loader/
+.DS_Store
+*.log
+npm-debug.log*
+.env
+.env.local
+
+# This repo uses npm (see package-lock.json + .github/workflows/deploy.yml).
+# Ignore stray pnpm/yarn lockfiles so a local `pnpm install` cannot drift
+# from the committed npm lockfile.
+pnpm-lock.yaml
+yarn.lock
