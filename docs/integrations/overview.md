@@ -12,7 +12,7 @@ Every integration on this page consumes AtomicMemory through the same two seams:
 - **HTTP API** — `ingest` / `search` / `package` / `trust`, documented under [API Reference](/api-reference/http/conventions)
 - **TypeScript SDK** — `MemoryClient` with the pluggable `MemoryProvider` model, documented under [SDK](/sdk/overview)
 
-Coding-agent integrations additionally share a **common MCP server** (`@atomicmemory/mcp-server`) shipped from [`atomicmemory-integrations`](https://github.com/atomicmemory/atomicmemory-integrations). It exposes three tools — `memory_search`, `memory_ingest`, `memory_package` — so Claude Code, OpenClaw, Codex, and Cursor all speak to the same memory surface through the same tool contract.
+Coding-agent integrations additionally share a **common MCP server** (`@atomicmemory/mcp-server`) shipped from [`atomicmemory-integrations`](https://github.com/atomicmemory/atomicmemory-integrations). It exposes three tools — `memory_search`, `memory_ingest`, `memory_package` — so Claude Code, OpenClaw, Codex, and Cursor all speak to the same memory surface through the same tool contract. `memory_ingest` supports extracted writes (`mode: "text"` / `mode: "messages"`) and deterministic one-record snapshots (`mode: "verbatim"`) for handoffs and lifecycle summaries.
 
 ## Coding Agents
 
