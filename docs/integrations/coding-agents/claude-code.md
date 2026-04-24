@@ -100,7 +100,7 @@ For lifecycle dedupe, pass a stable `metadata.dedupe_key` when using `mode: "ver
 |---|---|
 | `SessionStart` | Injects bootstrap guidance telling Claude to call `memory_search` early. Separate prompts for `startup`, `resume`, and `compact`. |
 | `UserPromptSubmit` | Searches `/v1/memories/search/fast` directly and injects matching memories as untrusted additional context. |
-| `PreCompact` | Manual-compaction semantic backstop only. Auto-compaction no-ops so the hook does not block context recovery near the limit. |
+| `PreCompact` | No-op by design. It never blocks compaction; `PostCompact` handles deterministic summary capture. |
 | `PostCompact` | Stores Claude Code's generated `compact_summary` as a deterministic lifecycle record. This is the primary compaction-capture path. |
 | `Stop` | On meaningful turns, stores a compact deterministic record from hook input and transcript evidence. Optionally prompts Claude for decisions, preferences, and anti-patterns. |
 | `StopFailure` | Debug telemetry only; no memory write. |
