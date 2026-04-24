@@ -218,7 +218,7 @@ This test does two useful things at once. It documents the canonical in-process 
 
 **Tests boot the real engine.** Integration tests don't use mocks-of-mocks. They call `createCoreRuntime` with a test pool, `createApp` on the runtime, and `bindEphemeral` to get a URL. The code under test is bit-for-bit the code running in production — only the pool and config are scoped differently.
 
-**Research harnesses are first-class.** The [`docs/consuming-core.md`](https://github.com/atomicmemory/atomicmemory-core/blob/main/docs/consuming-core.md) guide documents three official consumption modes — HTTP, in-process runtime container, and docker/E2E compose — and the composition root exposes them all through the same three seams. A research benchmark can run 10,000 in-process ingests without paying HTTP overhead, then flip to HTTP for a parity check, using the same runtime.
+**Research harnesses are first-class.** The [Consuming core](/platform/consuming-core) guide documents three official consumption modes — HTTP, in-process runtime container, and docker/E2E compose — and the composition root exposes them all through the same three seams. A research benchmark can run 10,000 in-process ingests without paying HTTP overhead, then flip to HTTP for a parity check, using the same runtime.
 
 ## Why this matters vs the alternatives
 

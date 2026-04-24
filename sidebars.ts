@@ -16,6 +16,7 @@ const sidebars: SidebarsConfig = {
       items: [
         'platform/architecture',
         'platform/composition',
+        'platform/consuming-core',
         'platform/stores',
         'platform/providers',
         'platform/scope',
