@@ -58,7 +58,13 @@ claw plugin install .
 
 ## Update and Version
 
-The OpenClaw plugin is installed from source. After changing the plugin manifest, package metadata, skill manifest, skill instructions, or provider registration, keep these versions aligned in `atomicmemory-integrations`:
+The OpenClaw plugin is installed from source. After changing the plugin manifest, package metadata, skill manifest, skill instructions, or provider registration, bump plugin versions from `atomicmemory-integrations`:
+
+```bash
+pnpm bump:plugin-versions patch
+```
+
+For OpenClaw, the helper keeps these versions aligned:
 
 - `plugins/openclaw/openclaw.plugin.json` at `/version`
 - `plugins/openclaw/package.json` at `/version`

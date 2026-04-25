@@ -61,7 +61,11 @@ claude plugin install claude-code@atomicmemory
 
 ### Updating a Local Install
 
-Claude Code plugin updates are version-gated. After changing hooks, skills, `hooks.json`, plugin manifests, or marketplace metadata, the plugin version in `atomicmemory-integrations` must be bumped before `claude plugin update claude-code@atomicmemory` will refresh the installed cache.
+Claude Code plugin updates are version-gated. After changing hooks, skills, `hooks.json`, plugin manifests, or marketplace metadata, bump plugin versions from `atomicmemory-integrations` before `claude plugin update claude-code@atomicmemory` will refresh the installed cache.
+
+```bash
+pnpm bump:plugin-versions patch
+```
 
 For local testing:
 

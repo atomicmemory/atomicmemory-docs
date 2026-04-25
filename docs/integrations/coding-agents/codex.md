@@ -109,7 +109,13 @@ The plugin's `.codex-mcp.json` forwards environment variables by name instead of
 
 ## Update and Version
 
-The Codex plugin is installed from source, so rebuilding the repo does not automatically update the copy loaded by Codex. After changing the plugin manifest, MCP config, skill, or marketplace metadata, keep these versions aligned in `atomicmemory-integrations`:
+The Codex plugin is installed from source, so rebuilding the repo does not automatically update the copy loaded by Codex. After changing the plugin manifest, MCP config, skill, or marketplace metadata, bump plugin versions from `atomicmemory-integrations`:
+
+```bash
+pnpm bump:plugin-versions patch
+```
+
+For Codex, the helper keeps these versions aligned:
 
 - `plugins/codex/.codex-plugin/plugin.json` at `/version`
 - `plugins/codex/package.json` at `/version`
