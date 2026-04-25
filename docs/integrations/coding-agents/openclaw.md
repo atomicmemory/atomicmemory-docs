@@ -56,6 +56,26 @@ cd plugins/openclaw
 claw plugin install .
 ```
 
+## Update and Version
+
+The OpenClaw plugin is installed from source. After changing the plugin manifest, package metadata, skill manifest, skill instructions, or provider registration, keep these versions aligned in `atomicmemory-integrations`:
+
+- `plugins/openclaw/openclaw.plugin.json` at `/version`
+- `plugins/openclaw/package.json` at `/version`
+- `plugins/openclaw/skills/atomicmemory/skill.yaml` at `/version`
+
+Then rebuild and reinstall:
+
+```bash
+pnpm --filter @atomicmemory/mcp-server build
+pnpm --filter @atomicmemory/openclaw-plugin build
+
+cd plugins/openclaw
+claw plugin install .
+```
+
+Restart the OpenClaw host if it keeps plugin modules loaded.
+
 ## Configure
 
 OpenClaw passes config from `openclaw.plugin.json` into the plugin entrypoint:
@@ -83,6 +103,7 @@ The manifest requires `apiUrl`, `apiKey`, and `scope`. It also rejects unknown c
 {
   "id": "atomicmemory",
   "name": "AtomicMemory",
+  "version": "0.1.1",
   "description": "Persistent semantic memory for OpenClaw agents - cross-channel user memory and deterministic session snapshots via the AtomicMemory SDK's pluggable MemoryProvider model.",
   "kind": "memory",
   "providers": ["atomicmemory.memory"],
@@ -128,7 +149,7 @@ The manifest requires `apiUrl`, `apiKey`, and `scope`. It also rejects unknown c
 
 ```yaml
 name: atomicmemory
-version: 0.1.0
+version: 0.1.1
 author:
   name: AtomicMemory
   url: https://atomicmem.ai
