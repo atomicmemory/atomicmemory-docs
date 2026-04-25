@@ -42,10 +42,11 @@ Install `jq` and `curl` for the shell hooks, then export config before launching
 export ATOMICMEMORY_MCP_SERVER_BIN="$HOME/path/to/atomicmemory-integrations/packages/mcp-server/dist/bin.js"
 export ATOMICMEMORY_API_URL="https://memory.yourco.com"
 export ATOMICMEMORY_API_KEY="am_live_..."
+export ATOMICMEMORY_PROVIDER="atomicmemory"
 export ATOMICMEMORY_SCOPE_USER="$USER"
+export ATOMICMEMORY_CAPTURE_LEVEL="balanced" # minimal|balanced|full
 
 # Optional:
-export ATOMICMEMORY_PROVIDER="atomicmemory"
 export ATOMICMEMORY_SCOPE_AGENT="claude-code"
 export ATOMICMEMORY_SCOPE_NAMESPACE="<repo-or-project>"
 export ATOMICMEMORY_SCOPE_THREAD="<thread-id>"
@@ -67,22 +68,25 @@ Required:
 | `ATOMICMEMORY_MCP_SERVER_BIN` | MCP manifest | Absolute path to `packages/mcp-server/dist/bin.js` |
 | `ATOMICMEMORY_API_URL` | MCP + hooks | AtomicMemory core URL |
 | `ATOMICMEMORY_API_KEY` | MCP + hooks | Bearer token |
+| `ATOMICMEMORY_PROVIDER` | MCP + hooks | Provider name; Claude lifecycle hooks require `atomicmemory` |
 | `ATOMICMEMORY_SCOPE_USER` | MCP + hooks | Stable user identity |
+| `ATOMICMEMORY_CAPTURE_LEVEL` | hooks | Lifecycle write volume: `minimal`, `balanced`, or `full` |
 
 Optional:
 
 | Env var | Purpose |
 |---|---|
-| `ATOMICMEMORY_PROVIDER` | `atomicmemory` by default; may be `mem0` where supported |
 | `ATOMICMEMORY_SCOPE_NAMESPACE` | Project/repo boundary |
 | `ATOMICMEMORY_SCOPE_AGENT` | Agent identity |
 | `ATOMICMEMORY_SCOPE_THREAD` | Session/thread boundary |
 | `ATOMICMEMORY_PROMPT_SEARCH_ENABLED=false` | Disable prompt-time retrieval |
-| `ATOMICMEMORY_PROMPT_SEARCH_MIN_CHARS=20` | Skip very short prompt searches |
-| `ATOMICMEMORY_CAPTURE_LEVEL=minimal\|balanced\|full` | Control lifecycle write volume; default is `balanced` |
-| `ATOMICMEMORY_SEMANTIC_PROMPTS_ENABLED=false` | Disable extra `Stop` prompts for model-mediated learnings |
+| `ATOMICMEMORY_PROMPT_SEARCH_MIN_CHARS=20` | Skip very short prompt searches; must be a positive integer if set |
+| `ATOMICMEMORY_PROMPT_SEARCH_LIMIT=5` | Prompt-search result count; must be a positive integer if set |
+| `ATOMICMEMORY_STOP_MIN_ASSISTANT_CHARS=200` | Minimum assistant text size for `Stop` capture; must be a positive integer if set |
+| `ATOMICMEMORY_TASK_MIN_TOOL_CALLS=5` | `TaskCompleted` threshold under `minimal` capture; must be a positive integer if set |
+| `ATOMICMEMORY_SEMANTIC_PROMPTS_ENABLED=false` | Disable extra `Stop` prompts for model-mediated learnings; must be `true` or `false` if set |
 
-If `jq` or `curl` are missing, hooks fail open and the user prompt still proceeds.
+If required config is missing, helper tools are unavailable, or numeric/boolean env vars are invalid, hooks surface the error instead of running in a degraded mode.
 
 ## MCP tools exposed
 

@@ -65,7 +65,7 @@ Register the MCP server in Cursor's MCP settings. Because `@atomicmemory/mcp-ser
 }
 ```
 
-At least one `ATOMICMEMORY_SCOPE_*` value must be set. `ATOMICMEMORY_SCOPE_USER` is the normal baseline; use `ATOMICMEMORY_SCOPE_NAMESPACE` for project or repo isolation.
+`ATOMICMEMORY_MCP_SERVER_BIN`, `ATOMICMEMORY_API_URL`, `ATOMICMEMORY_API_KEY`, and `ATOMICMEMORY_PROVIDER` are required by the MCP server. At least one `ATOMICMEMORY_SCOPE_*` value must be set. `ATOMICMEMORY_SCOPE_USER` is the normal baseline; use `ATOMICMEMORY_SCOPE_NAMESPACE` for project or repo isolation.
 
 ## Available MCP Tools
 

@@ -61,7 +61,7 @@ export ATOMICMEMORY_SCOPE_NAMESPACE="repo-or-project"
 export ATOMICMEMORY_SCOPE_THREAD="session-id"
 ```
 
-`ATOMICMEMORY_MCP_SERVER_BIN` is required. At least one `ATOMICMEMORY_SCOPE_*` value must be set, and `ATOMICMEMORY_SCOPE_USER` is recommended for user-owned memory.
+`ATOMICMEMORY_MCP_SERVER_BIN`, `ATOMICMEMORY_API_URL`, `ATOMICMEMORY_API_KEY`, and `ATOMICMEMORY_PROVIDER` are required by the MCP server. At least one `ATOMICMEMORY_SCOPE_*` value must be set, and `ATOMICMEMORY_SCOPE_USER` is recommended for user-owned memory.
 
 ## Plugin Setup
 
