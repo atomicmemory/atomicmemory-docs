@@ -59,6 +59,28 @@ claude plugin marketplace add ./
 claude plugin install claude-code@atomicmemory
 ```
 
+### Updating a Local Install
+
+Claude Code plugin updates are version-gated. After changing hooks, skills, `hooks.json`, plugin manifests, or marketplace metadata, the plugin version in `atomicmemory-integrations` must be bumped before `claude plugin update claude-code@atomicmemory` will refresh the installed cache.
+
+For local testing:
+
+```bash
+pnpm --filter @atomicmemory/mcp-server build
+claude plugin marketplace list
+claude plugin update claude-code@atomicmemory
+```
+
+If the marketplace points at an old clone, replace it from the current checkout:
+
+```bash
+claude plugin marketplace remove atomicmemory
+claude plugin marketplace add ./ --scope user
+claude plugin install claude-code@atomicmemory
+```
+
+Fully restart Claude Code after updating. Existing sessions can keep old hook registrations in memory even when the installed cache on disk is fresh.
+
 ## Configuration
 
 Required:
