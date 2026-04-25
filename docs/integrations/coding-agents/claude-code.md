@@ -132,13 +132,13 @@ For lifecycle dedupe, pass a stable `metadata.dedupe_key` when using `mode: "ver
 | `UserPromptSubmit` | Searches `/v1/memories/search/fast` directly and injects matching memories as untrusted additional context. |
 | `PreCompact` | No-op by design. It never blocks compaction; `PostCompact` handles deterministic summary capture. |
 | `PostCompact` | Stores Claude Code's generated `compact_summary` as a deterministic lifecycle record. This is the primary compaction-capture path. |
-| `Stop` | On meaningful turns, stores a compact deterministic record from hook input and transcript evidence. Optionally prompts Claude for decisions, preferences, and anti-patterns. |
+| `Stop` | On meaningful turns, stores a normalized deterministic record with outcome, changed files, and validation. Tool counts, session IDs, cwd, and transcript paths stay in embedded metadata. Optionally prompts Claude for decisions, preferences, and anti-patterns. |
 | `StopFailure` | Debug telemetry only; no memory write. |
 | `SessionEnd` | Cleans local dedupe / last-write markers. |
 | `TaskCompleted` | Stores a compact task record using the documented `task_subject` field. |
 | `PreToolUse` (`Write` / `Edit`) | Blocks writes to `MEMORY.md`, `.atomicmemory`, and Claude memory-file paths so agents use `memory_ingest` instead. |
 
-Lifecycle writes are compact records, not raw prompt dumps. Hook scripts redact obvious secret-shaped values before writing.
+Lifecycle writes are compact records, not raw prompt dumps. Hook scripts redact obvious secret-shaped values and strip fenced code blocks / follow-up prompts from Stop summaries before writing.
 
 ## The skill
 

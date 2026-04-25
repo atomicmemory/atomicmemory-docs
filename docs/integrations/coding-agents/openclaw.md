@@ -109,7 +109,7 @@ The manifest requires `apiUrl`, `apiKey`, and `scope`. It also rejects unknown c
 {
   "id": "atomicmemory",
   "name": "AtomicMemory",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Persistent semantic memory for OpenClaw agents - cross-channel user memory and deterministic session snapshots via the AtomicMemory SDK's pluggable MemoryProvider model.",
   "kind": "memory",
   "providers": ["atomicmemory.memory"],
@@ -155,7 +155,7 @@ The manifest requires `apiUrl`, `apiKey`, and `scope`. It also rejects unknown c
 
 ```yaml
 name: atomicmemory
-version: 0.1.1
+version: 0.1.2
 author:
   name: AtomicMemory
   url: https://atomicmem.ai
