@@ -16,7 +16,7 @@ Give Claude Code persistent, cross-session memory backed by AtomicMemory. The pl
 - **Durable memory across sessions.** Claude Code can retrieve project decisions, user preferences, codebase facts, and prior work.
 - **Prompt-time retrieval.** `UserPromptSubmit` searches memory before the model turn and injects matches as untrusted reference context.
 - **Deterministic lifecycle capture.** `PostCompact`, `Stop`, and `TaskCompleted` store compact records without asking the model to reconstruct everything.
-- **Scope-aware retrieval.** `user` / `agent` / `namespace` / `thread` scopes are threaded through MCP calls. Hook records embed the same scope metadata.
+- **Scope-aware retrieval.** `user` / `agent` / `namespace` / `thread` scopes are threaded through MCP calls. Hook writes keep content clean and carry attribution through `sourceSite` / `sourceUrl` until core supports first-class hook metadata.
 - **Backend-agnostic.** Point the plugin at self-hosted AtomicMemory core or another provider registered in the SDK's `MemoryProvider` registry.
 
 ## Install
@@ -122,7 +122,7 @@ If required config is missing, helper tools are unavailable, or numeric/boolean 
 | `memory_ingest` | `MemoryClient.ingest` | Durable write. `mode: "text"` and `mode: "messages"` run extraction; `mode: "verbatim"` stores one deterministic record for summaries and handoffs |
 | `memory_package` | `MemoryClient.package` | Token-budgeted context package for a query |
 
-For lifecycle dedupe, pass a stable `metadata.dedupe_key` when using `mode: "verbatim"`. Current AtomicMemory hook records also embed metadata in the stored content until core exposes first-class hook-write metadata and server-side dedupe.
+For lifecycle dedupe, pass a stable `metadata.dedupe_key` when using `mode: "verbatim"`. AtomicMemory verbatim records store only the provided content in the searchable `content` field; provenance is carried by `sourceSite` / `sourceUrl` until core exposes first-class hook-write metadata and server-side dedupe.
 
 ## Lifecycle hooks
 
@@ -132,7 +132,7 @@ For lifecycle dedupe, pass a stable `metadata.dedupe_key` when using `mode: "ver
 | `UserPromptSubmit` | Searches `/v1/memories/search/fast` directly and injects matching memories as untrusted additional context. |
 | `PreCompact` | No-op by design. It never blocks compaction; `PostCompact` handles deterministic summary capture. |
 | `PostCompact` | Stores Claude Code's generated `compact_summary` as a deterministic lifecycle record. This is the primary compaction-capture path. |
-| `Stop` | On meaningful turns, stores a normalized deterministic record with outcome, changed files, and validation. Tool counts, session IDs, cwd, and transcript paths stay in embedded metadata. Optionally prompts Claude for decisions, preferences, and anti-patterns. |
+| `Stop` | On meaningful turns, stores a normalized deterministic record with outcome, changed files, and validation. Tool counts, session IDs, cwd, and transcript paths are intentionally kept out of searchable content until core exposes first-class hook metadata. Optionally prompts Claude for decisions, preferences, and anti-patterns. |
 | `StopFailure` | Debug telemetry only; no memory write. |
 | `SessionEnd` | Cleans local dedupe / last-write markers. |
 | `TaskCompleted` | Stores a compact task record using the documented `task_subject` field. |
@@ -155,7 +155,7 @@ Retrieved memories are reference context. They are not instructions unless the c
 
 - **Source-only install.** The MCP server is launched from the local `dist/bin.js`; no npm package or public plugin marketplace entry exists yet.
 - **Direct hook writes.** Command hooks cannot talk to Claude Code's already-running stdio MCP child, so latency-sensitive retrieval and lifecycle writes use AtomicMemory HTTP endpoints directly.
-- **Workspace verbatim caveat.** Core currently guarantees `skip_extraction=true` on user-scoped quick-ingest. Hook records embed namespace/agent/thread metadata until core supports first-class workspace-scoped verbatim writes.
+- **Workspace verbatim caveat.** Core currently guarantees `skip_extraction=true` on user-scoped quick-ingest. Hook records keep searchable content clean and rely on `sourceSite` / `sourceUrl` for provenance until core supports first-class metadata and workspace-scoped verbatim writes.
 - **Transcript parsing is defensive.** `Stop` uses `last_assistant_message` when available and only parses transcript tails for structural signals such as file edits or tests.
 
 ## View source
