@@ -1,0 +1,1 @@
+{"parameters":[{"in":"path","name":"id","required":true,"schema":{"format":"uuid","type":"string"}},{"in":"query","name":"user_id","required":true,"schema":{"minLength":1,"type":"string"}},{"in":"query","name":"workspace_id","required":false,"schema":{"type":"string"}},{"in":"query","name":"agent_id","required":false,"schema":{"format":"uuid","type":"string"}}]}

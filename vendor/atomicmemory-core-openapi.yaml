@@ -1,0 +1,3501 @@
+components:
+  parameters: {}
+  schemas:
+    ErrorBasic:
+      description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+      example:
+        error: user_id is required
+      properties:
+        error:
+          type: string
+      required:
+        - error
+      type: object
+    ErrorConfig400:
+      description: Richer 400 envelope for PUT /v1/memories/config when startup-only fields are included.
+      example:
+        detail: Fields embedding_provider cannot be mutated at runtime — the embedding/LLM provider caches are fixed at first use.
+        error: Provider/model selection is startup-only
+        rejected:
+          - embedding_provider
+      properties:
+        detail:
+          type: string
+        error:
+          type: string
+        rejected:
+          items:
+            type: string
+          type: array
+      required:
+        - error
+        - detail
+        - rejected
+      type: object
+    ErrorConfig410:
+      description: 410 Gone envelope for PUT /v1/memories/config when runtime mutation is disabled.
+      example:
+        detail: Set CORE_RUNTIME_CONFIG_MUTATION_ENABLED=true to enable runtime mutation in dev/test environments.
+        error: PUT /v1/memories/config is deprecated for production
+      properties:
+        detail:
+          type: string
+        error:
+          type: string
+      required:
+        - error
+        - detail
+      type: object
+info:
+  description: Semantic memory engine for AI applications. Request/response bodies are JSON; fields on the wire use snake_case.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: AtomicMemory HTTP API
+  version: 1.0.0
+openapi: 3.1.0
+paths:
+  /v1/agents/conflicts:
+    get:
+      operationId: listAgentConflicts
+      parameters:
+        - description: Required. user_id.
+          in: query
+          name: user_id
+          required: true
+          schema:
+            description: Required. user_id.
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Open agent-trust conflicts for a user.
+                properties:
+                  conflicts:
+                    items:
+                      additionalProperties: {}
+                      description: Memory conflict row from the repository.
+                      properties:
+                        auto_resolve_after:
+                          type:
+                            - string
+                            - "null"
+                        clarification_note:
+                          type:
+                            - string
+                            - "null"
+                        contradiction_confidence:
+                          type: number
+                        created_at:
+                          type: string
+                        existing_agent_id:
+                          type:
+                            - string
+                            - "null"
+                        existing_memory_id:
+                          type:
+                            - string
+                            - "null"
+                        existing_trust_level:
+                          type:
+                            - number
+                            - "null"
+                        id:
+                          type: string
+                        new_agent_id:
+                          type:
+                            - string
+                            - "null"
+                        new_memory_id:
+                          type:
+                            - string
+                            - "null"
+                        new_trust_level:
+                          type:
+                            - number
+                            - "null"
+                        resolution_policy:
+                          type:
+                            - string
+                            - "null"
+                        resolved_at:
+                          type:
+                            - string
+                            - "null"
+                        status:
+                          enum:
+                            - open
+                            - resolved_new
+                            - resolved_existing
+                            - resolved_both
+                            - auto_resolved
+                          type: string
+                        user_id:
+                          type: string
+                      required:
+                        - id
+                        - user_id
+                        - new_memory_id
+                        - existing_memory_id
+                        - new_agent_id
+                        - existing_agent_id
+                        - new_trust_level
+                        - existing_trust_level
+                        - contradiction_confidence
+                        - clarification_note
+                        - status
+                        - resolution_policy
+                        - resolved_at
+                        - created_at
+                        - auto_resolve_after
+                      type: object
+                    type: array
+                  count:
+                    type: number
+                required:
+                  - conflicts
+                  - count
+                type: object
+          description: Conflicts list.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: List open agent conflicts for a user.
+      tags:
+        - Agents
+  /v1/agents/conflicts/auto-resolve:
+    post:
+      operationId: autoResolveAgentConflicts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Auto-resolve expired conflicts for a user.
+              properties:
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+              required:
+                - user_id
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Count of conflicts auto-resolved in the batch pass.
+                properties:
+                  resolved:
+                    type: number
+                required:
+                  - resolved
+                type: object
+          description: Count of resolved conflicts.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Auto-resolve all expired conflicts for a user.
+      tags:
+        - Agents
+  /v1/agents/conflicts/{id}/resolve:
+    put:
+      operationId: resolveAgentConflict
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Resolve a specific conflict with one of the three enum variants.
+              properties:
+                resolution:
+                  enum:
+                    - resolved_new
+                    - resolved_existing
+                    - resolved_both
+                  type: string
+              required:
+                - resolution
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Resolved-conflict echo.
+                properties:
+                  id:
+                    type: string
+                  status:
+                    enum:
+                      - resolved_new
+                      - resolved_existing
+                      - resolved_both
+                    type: string
+                required:
+                  - id
+                  - status
+                type: object
+          description: Resolution confirmation.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Resolve a specific conflict with one of the three enum variants.
+      tags:
+        - Agents
+  /v1/agents/trust:
+    get:
+      operationId: getAgentTrust
+      parameters:
+        - description: Required. agent_id.
+          in: query
+          name: agent_id
+          required: true
+          schema:
+            description: Required. agent_id.
+            minLength: 1
+            type: string
+        - description: Required. user_id.
+          in: query
+          name: user_id
+          required: true
+          schema:
+            description: Required. user_id.
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: (userId, agentId) trust record.
+                properties:
+                  agent_id:
+                    type: string
+                  trust_level:
+                    type: number
+                required:
+                  - agent_id
+                  - trust_level
+                type: object
+          description: Agent id + trust level.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Look up the trust level for a (user, agent) pair.
+      tags:
+        - Agents
+    put:
+      operationId: setAgentTrust
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Set the calling user's trust level for a given agent. trust_level in [0.0, 1.0].
+              properties:
+                agent_id:
+                  description: Required. agent_id.
+                  minLength: 1
+                  type: string
+                display_name:
+                  type: string
+                trust_level:
+                  description: Trust score in [0.0, 1.0].
+                  maximum: 1
+                  minimum: 0
+                  type: number
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+              required:
+                - agent_id
+                - user_id
+                - trust_level
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: (userId, agentId) trust record.
+                properties:
+                  agent_id:
+                    type: string
+                  trust_level:
+                    type: number
+                required:
+                  - agent_id
+                  - trust_level
+                type: object
+          description: Agent id + applied trust level.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Set the calling user's trust level for a given agent.
+      tags:
+        - Agents
+  /v1/memories/audit/recent:
+    get:
+      operationId: getRecentAudit
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Newest-first mutation rows for a user.
+                properties:
+                  count:
+                    type: number
+                  mutations:
+                    items:
+                      additionalProperties: {}
+                      description: Claim-version row (one snapshot in a memory's history).
+                      properties:
+                        actor_model:
+                          type:
+                            - string
+                            - "null"
+                        claim_id:
+                          type: string
+                        content:
+                          type: string
+                        contradiction_confidence:
+                          type:
+                            - number
+                            - "null"
+                        created_at:
+                          type: string
+                        embedding:
+                          items:
+                            type: number
+                          type: array
+                        episode_id:
+                          type:
+                            - string
+                            - "null"
+                        id:
+                          type: string
+                        importance:
+                          type: number
+                        memory_id:
+                          type:
+                            - string
+                            - "null"
+                        mutation_reason:
+                          type:
+                            - string
+                            - "null"
+                        mutation_type:
+                          enum:
+                            - add
+                            - update
+                            - supersede
+                            - delete
+                            - clarify
+                            - null
+                          type:
+                            - string
+                            - "null"
+                        previous_version_id:
+                          type:
+                            - string
+                            - "null"
+                        source_site:
+                          type: string
+                        source_url:
+                          type: string
+                        superseded_by_version_id:
+                          type:
+                            - string
+                            - "null"
+                        user_id:
+                          type: string
+                        valid_from:
+                          type: string
+                        valid_to:
+                          type:
+                            - string
+                            - "null"
+                      required:
+                        - id
+                        - claim_id
+                        - user_id
+                        - content
+                        - embedding
+                        - importance
+                        - source_site
+                        - source_url
+                        - valid_from
+                        - created_at
+                      type: object
+                    type: array
+                required:
+                  - mutations
+                  - count
+                type: object
+          description: Recent mutations.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Recent mutations for a user, limit-bounded.
+      tags:
+        - Audit
+  /v1/memories/audit/summary:
+    get:
+      operationId: getAuditSummary
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Aggregate mutation statistics for a user.
+                properties:
+                  active_versions:
+                    type: number
+                  by_mutation_type:
+                    additionalProperties:
+                      type: number
+                    type: object
+                  superseded_versions:
+                    type: number
+                  total_claims:
+                    type: number
+                  total_versions:
+                    type: number
+                required:
+                  - total_versions
+                  - active_versions
+                  - superseded_versions
+                  - total_claims
+                  - by_mutation_type
+                type: object
+          description: Mutation summary.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Aggregate mutation statistics for a user's memory store.
+      tags:
+        - Audit
+  /v1/memories/cap:
+    get:
+      operationId: checkMemoryCap
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Memory cap status and recommendation.
+                properties:
+                  active_memories:
+                    type: number
+                  max_memories:
+                    type: number
+                  recommendation:
+                    enum:
+                      - none
+                      - consolidate
+                      - decay
+                      - consolidate-and-decay
+                    type: string
+                  status:
+                    enum:
+                      - ok
+                      - warn
+                      - exceeded
+                    type: string
+                  usage_ratio:
+                    type: number
+                required:
+                  - active_memories
+                  - max_memories
+                  - status
+                  - usage_ratio
+                  - recommendation
+                type: object
+          description: Cap status.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Memory-cap status for a user's store.
+      tags:
+        - Lifecycle
+  /v1/memories/config:
+    put:
+      description: Set CORE_RUNTIME_CONFIG_MUTATION_ENABLED=true to enable. Startup-only fields (embedding_provider/model, voyage_api_key, voyage_document_model, voyage_query_model, llm_provider/model) return 400 with a `rejected` array listing the offending fields.
+      operationId: updateConfig
+      requestBody:
+        content:
+          application/json:
+            schema:
+              additionalProperties: {}
+              description: Runtime config mutation. See handler for 410 and rejected[] paths.
+              properties: {}
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Applied config updates + full post-update snapshot.
+                properties:
+                  applied:
+                    items:
+                      type: string
+                    type: array
+                  config:
+                    description: Runtime config snapshot returned by /health + /config.
+                    properties:
+                      agentic_retrieval_enabled:
+                        type: boolean
+                      clarification_conflict_threshold:
+                        type: number
+                      cross_encoder_enabled:
+                        type: boolean
+                      embedding_model:
+                        type: string
+                      embedding_provider:
+                        type: string
+                      entity_graph_enabled:
+                        type: boolean
+                      hybrid_search_enabled:
+                        type: boolean
+                      iterative_retrieval_enabled:
+                        type: boolean
+                      llm_model:
+                        type: string
+                      llm_provider:
+                        type: string
+                      max_search_results:
+                        type: number
+                      repair_loop_enabled:
+                        type: boolean
+                      retrieval_profile:
+                        type: string
+                      voyage_document_model:
+                        type: string
+                      voyage_query_model:
+                        type: string
+                    required:
+                      - retrieval_profile
+                      - embedding_provider
+                      - embedding_model
+                      - voyage_document_model
+                      - voyage_query_model
+                      - llm_provider
+                      - llm_model
+                      - clarification_conflict_threshold
+                      - max_search_results
+                      - hybrid_search_enabled
+                      - iterative_retrieval_enabled
+                      - entity_graph_enabled
+                      - cross_encoder_enabled
+                      - agentic_retrieval_enabled
+                      - repair_loop_enabled
+                    type: object
+                  note:
+                    type: string
+                required:
+                  - applied
+                  - config
+                  - note
+                type: object
+          description: Applied changes + config snapshot.
+        "400":
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/ErrorBasic"
+                  - $ref: "#/components/schemas/ErrorConfig400"
+          description: Input validation error OR startup-only fields were supplied.
+        "410":
+          content:
+            application/json:
+              schema:
+                description: 410 Gone envelope for PUT /v1/memories/config when runtime mutation is disabled.
+                example:
+                  detail: Set CORE_RUNTIME_CONFIG_MUTATION_ENABLED=true to enable runtime mutation in dev/test environments.
+                  error: PUT /v1/memories/config is deprecated for production
+                properties:
+                  detail:
+                    type: string
+                  error:
+                    type: string
+                required:
+                  - error
+                  - detail
+                type: object
+          description: Runtime config mutation is disabled in production.
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Mutate runtime config (dev/test only). 410 when disabled.
+      tags:
+        - Configuration
+  /v1/memories/consolidate:
+    post:
+      operationId: consolidateMemories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                execute:
+                  type: boolean
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+              required:
+                - user_id
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                anyOf:
+                  - description: Consolidation dry-run (execute=false).
+                    properties:
+                      clusters:
+                        items:
+                          properties:
+                            avg_affinity:
+                              type: number
+                            member_contents:
+                              items:
+                                type: string
+                              type: array
+                            member_count:
+                              type: number
+                            member_ids:
+                              items:
+                                type: string
+                              type: array
+                          required:
+                            - member_ids
+                            - member_contents
+                            - avg_affinity
+                            - member_count
+                          type: object
+                        type: array
+                      clusters_found:
+                        type: number
+                      memories_in_clusters:
+                        type: number
+                      memories_scanned:
+                        type: number
+                    required:
+                      - memories_scanned
+                      - clusters_found
+                      - memories_in_clusters
+                      - clusters
+                    type: object
+                  - description: Consolidation execution result (execute=true).
+                    properties:
+                      clusters_consolidated:
+                        type: number
+                      consolidated_memory_ids:
+                        items:
+                          type: string
+                        type: array
+                      memories_archived:
+                        type: number
+                      memories_created:
+                        type: number
+                    required:
+                      - clusters_consolidated
+                      - memories_archived
+                      - memories_created
+                      - consolidated_memory_ids
+                    type: object
+                description: Consolidation result — scan or execute.
+          description: Consolidation result.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Compute consolidation candidates; optionally execute (execute=true).
+      tags:
+        - Lifecycle
+  /v1/memories/decay:
+    post:
+      operationId: evaluateDecay
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                dry_run:
+                  type: boolean
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+              required:
+                - user_id
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Decay evaluation (+ archive count when not dry-run).
+                properties:
+                  archived:
+                    type: number
+                  avg_retention_score:
+                    type: number
+                  candidates_for_archival:
+                    items:
+                      properties:
+                        access_count:
+                          type: number
+                        content:
+                          type: string
+                        days_since_access:
+                          type: number
+                        id:
+                          type: string
+                        importance:
+                          type: number
+                        retention_score:
+                          type: number
+                      required:
+                        - id
+                        - content
+                        - retention_score
+                        - importance
+                        - days_since_access
+                        - access_count
+                      type: object
+                    type: array
+                  memories_evaluated:
+                    type: number
+                  retention_threshold:
+                    type: number
+                required:
+                  - memories_evaluated
+                  - candidates_for_archival
+                  - retention_threshold
+                  - avg_retention_score
+                  - archived
+                type: object
+          description: Decay evaluation + archived count.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Evaluate decay candidates. dry_run=false archives them.
+      tags:
+        - Lifecycle
+  /v1/memories/expand:
+    post:
+      operationId: expandMemories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Expand a list of memory IDs into full objects.
+              properties:
+                agent_id:
+                  description: Optional agent identifier. Silently dropped if empty / non-string.
+                  type: string
+                memory_ids:
+                  description: Required. memory_ids.
+                  items:
+                    type: string
+                  type: array
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+                visibility:
+                  description: Visibility (one of agent_only / restricted / workspace). Invalid values silently drop to undefined.
+                  enum:
+                    - agent_only
+                    - restricted
+                    - workspace
+                  type: string
+                workspace_id:
+                  description: Optional workspace identifier. Silently dropped if empty / non-string.
+                  type: string
+              required:
+                - user_id
+                - memory_ids
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Expanded memory rows for the requested IDs.
+                properties:
+                  memories:
+                    items:
+                      additionalProperties: {}
+                      description: Full memory row as emitted by core.
+                      properties:
+                        access_count:
+                          type: number
+                        agent_id:
+                          type:
+                            - string
+                            - "null"
+                        content:
+                          type: string
+                        created_at:
+                          type: string
+                        deleted_at:
+                          type:
+                            - string
+                            - "null"
+                        embedding:
+                          items:
+                            type: number
+                          type: array
+                        episode_id:
+                          type:
+                            - string
+                            - "null"
+                        expired_at:
+                          type:
+                            - string
+                            - "null"
+                        id:
+                          type: string
+                        importance:
+                          type: number
+                        keywords:
+                          type: string
+                        last_accessed_at:
+                          type: string
+                        memory_type:
+                          type: string
+                        metadata:
+                          additionalProperties: {}
+                          type: object
+                        namespace:
+                          type:
+                            - string
+                            - "null"
+                        network: {}
+                        observation_subject:
+                          type:
+                            - string
+                            - "null"
+                        observed_at:
+                          type: string
+                        opinion_confidence:
+                          type:
+                            - number
+                            - "null"
+                        overview:
+                          type: string
+                        source_site:
+                          type: string
+                        source_url:
+                          type: string
+                        status:
+                          enum:
+                            - active
+                            - needs_clarification
+                          type: string
+                        summary:
+                          type: string
+                        trust_score:
+                          type: number
+                        user_id:
+                          type: string
+                        visibility:
+                          enum:
+                            - agent_only
+                            - restricted
+                            - workspace
+                            - null
+                          type:
+                            - string
+                            - "null"
+                        workspace_id:
+                          type:
+                            - string
+                            - "null"
+                      required:
+                        - id
+                        - user_id
+                        - content
+                        - embedding
+                        - memory_type
+                        - importance
+                        - source_site
+                        - source_url
+                        - status
+                        - metadata
+                        - keywords
+                        - summary
+                        - overview
+                        - trust_score
+                        - observed_at
+                        - created_at
+                        - last_accessed_at
+                        - access_count
+                      type: object
+                    type: array
+                required:
+                  - memories
+                type: object
+          description: Expanded memories array.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Expand a list of memory IDs into full objects.
+      tags:
+        - Memories
+  /v1/memories/health:
+    get:
+      operationId: getMemoryHealth
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Health + runtime config snapshot.
+                properties:
+                  config:
+                    description: Runtime config snapshot returned by /health + /config.
+                    properties:
+                      agentic_retrieval_enabled:
+                        type: boolean
+                      clarification_conflict_threshold:
+                        type: number
+                      cross_encoder_enabled:
+                        type: boolean
+                      embedding_model:
+                        type: string
+                      embedding_provider:
+                        type: string
+                      entity_graph_enabled:
+                        type: boolean
+                      hybrid_search_enabled:
+                        type: boolean
+                      iterative_retrieval_enabled:
+                        type: boolean
+                      llm_model:
+                        type: string
+                      llm_provider:
+                        type: string
+                      max_search_results:
+                        type: number
+                      repair_loop_enabled:
+                        type: boolean
+                      retrieval_profile:
+                        type: string
+                      voyage_document_model:
+                        type: string
+                      voyage_query_model:
+                        type: string
+                    required:
+                      - retrieval_profile
+                      - embedding_provider
+                      - embedding_model
+                      - voyage_document_model
+                      - voyage_query_model
+                      - llm_provider
+                      - llm_model
+                      - clarification_conflict_threshold
+                      - max_search_results
+                      - hybrid_search_enabled
+                      - iterative_retrieval_enabled
+                      - entity_graph_enabled
+                      - cross_encoder_enabled
+                      - agentic_retrieval_enabled
+                      - repair_loop_enabled
+                    type: object
+                  status:
+                    enum:
+                      - ok
+                    type: string
+                required:
+                  - status
+                  - config
+                type: object
+          description: Status + config snapshot.
+      summary: Subsystem liveness + current runtime config snapshot.
+      tags:
+        - Configuration
+  /v1/memories/ingest:
+    post:
+      operationId: ingestMemory
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Ingest a conversation transcript. User-scoped unless workspace_id + agent_id are both provided.
+              properties:
+                agent_id:
+                  description: Optional agent identifier. Silently dropped if empty / non-string.
+                  type: string
+                config_override:
+                  additionalProperties:
+                    anyOf:
+                      - type: boolean
+                      - type: number
+                      - type: string
+                      - type: "null"
+                  description: "Optional per-request overlay on RuntimeConfig. Keys correspond to RuntimeConfig field names; values must be primitives (boolean / number / string / null). Unknown keys are accepted but surfaced via the X-Atomicmem-Unknown-Override-Keys response header and a server-side warning log — they do not cause a 400. Scope: just this request — no server mutation."
+                  type: object
+                conversation:
+                  description: Required. conversation.
+                  minLength: 1
+                  type: string
+                skip_extraction:
+                  type: boolean
+                source_site:
+                  description: Required. source_site.
+                  minLength: 1
+                  type: string
+                source_url:
+                  type: string
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+                visibility:
+                  description: Visibility (one of agent_only / restricted / workspace). Invalid values silently drop to undefined.
+                  enum:
+                    - agent_only
+                    - restricted
+                    - workspace
+                  type: string
+                workspace_id:
+                  description: Optional workspace identifier. Silently dropped if empty / non-string.
+                  type: string
+              required:
+                - user_id
+                - conversation
+                - source_site
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: "Ingest result: extraction counts + stored/updated memory IDs."
+                properties:
+                  composites_created:
+                    type: number
+                  episode_id:
+                    type: string
+                  facts_extracted:
+                    type: number
+                  links_created:
+                    type: number
+                  memories_deleted:
+                    type: number
+                  memories_skipped:
+                    type: number
+                  memories_stored:
+                    type: number
+                  memories_updated:
+                    type: number
+                  stored_memory_ids:
+                    items:
+                      type: string
+                    type: array
+                  updated_memory_ids:
+                    items:
+                      type: string
+                    type: array
+                required:
+                  - episode_id
+                  - facts_extracted
+                  - memories_stored
+                  - memories_updated
+                  - memories_deleted
+                  - memories_skipped
+                  - stored_memory_ids
+                  - updated_memory_ids
+                  - links_created
+                  - composites_created
+                type: object
+          description: Ingest result with extracted facts.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Ingest a conversation transcript with full extraction.
+      tags:
+        - Memories
+  /v1/memories/ingest/quick:
+    post:
+      operationId: ingestMemoryQuick
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Ingest a conversation transcript. User-scoped unless workspace_id + agent_id are both provided.
+              properties:
+                agent_id:
+                  description: Optional agent identifier. Silently dropped if empty / non-string.
+                  type: string
+                config_override:
+                  additionalProperties:
+                    anyOf:
+                      - type: boolean
+                      - type: number
+                      - type: string
+                      - type: "null"
+                  description: "Optional per-request overlay on RuntimeConfig. Keys correspond to RuntimeConfig field names; values must be primitives (boolean / number / string / null). Unknown keys are accepted but surfaced via the X-Atomicmem-Unknown-Override-Keys response header and a server-side warning log — they do not cause a 400. Scope: just this request — no server mutation."
+                  type: object
+                conversation:
+                  description: Required. conversation.
+                  minLength: 1
+                  type: string
+                skip_extraction:
+                  type: boolean
+                source_site:
+                  description: Required. source_site.
+                  minLength: 1
+                  type: string
+                source_url:
+                  type: string
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+                visibility:
+                  description: Visibility (one of agent_only / restricted / workspace). Invalid values silently drop to undefined.
+                  enum:
+                    - agent_only
+                    - restricted
+                    - workspace
+                  type: string
+                workspace_id:
+                  description: Optional workspace identifier. Silently dropped if empty / non-string.
+                  type: string
+              required:
+                - user_id
+                - conversation
+                - source_site
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: "Ingest result: extraction counts + stored/updated memory IDs."
+                properties:
+                  composites_created:
+                    type: number
+                  episode_id:
+                    type: string
+                  facts_extracted:
+                    type: number
+                  links_created:
+                    type: number
+                  memories_deleted:
+                    type: number
+                  memories_skipped:
+                    type: number
+                  memories_stored:
+                    type: number
+                  memories_updated:
+                    type: number
+                  stored_memory_ids:
+                    items:
+                      type: string
+                    type: array
+                  updated_memory_ids:
+                    items:
+                      type: string
+                    type: array
+                required:
+                  - episode_id
+                  - facts_extracted
+                  - memories_stored
+                  - memories_updated
+                  - memories_deleted
+                  - memories_skipped
+                  - stored_memory_ids
+                  - updated_memory_ids
+                  - links_created
+                  - composites_created
+                type: object
+          description: Ingest result.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Quick ingest (storeVerbatim when skip_extraction=true).
+      tags:
+        - Memories
+  /v1/memories/lessons:
+    get:
+      operationId: listLessons
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Active lessons for a user.
+                properties:
+                  count:
+                    type: number
+                  lessons:
+                    items:
+                      additionalProperties: {}
+                      description: Lesson row from the repository.
+                      properties:
+                        active:
+                          type: boolean
+                        created_at:
+                          type: string
+                        embedding:
+                          items:
+                            type: number
+                          type: array
+                        id:
+                          type: string
+                        lesson_type:
+                          enum:
+                            - injection_blocked
+                            - false_memory
+                            - contradiction_pattern
+                            - user_reported
+                            - consensus_violation
+                            - trust_violation
+                          type: string
+                        metadata:
+                          additionalProperties: {}
+                          type: object
+                        pattern:
+                          type: string
+                        severity:
+                          enum:
+                            - low
+                            - medium
+                            - high
+                            - critical
+                          type: string
+                        source_memory_ids:
+                          items:
+                            type: string
+                          type: array
+                        source_query:
+                          type:
+                            - string
+                            - "null"
+                        user_id:
+                          type: string
+                      required:
+                        - id
+                        - user_id
+                        - lesson_type
+                        - pattern
+                        - embedding
+                        - source_memory_ids
+                        - source_query
+                        - severity
+                        - active
+                        - metadata
+                        - created_at
+                      type: object
+                    type: array
+                required:
+                  - lessons
+                  - count
+                type: object
+          description: Lessons list.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: List active lessons for a user.
+      tags:
+        - Lessons
+  /v1/memories/lessons/report:
+    post:
+      operationId: reportLesson
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                pattern:
+                  description: Required. pattern.
+                  minLength: 1
+                  type: string
+                severity: {}
+                source_memory_ids:
+                  items:
+                    type: string
+                  type: array
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+              required:
+                - user_id
+                - pattern
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: ID of the newly-reported lesson.
+                properties:
+                  lesson_id:
+                    type: string
+                required:
+                  - lesson_id
+                type: object
+          description: Lesson id.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Report a new lesson.
+      tags:
+        - Lessons
+  /v1/memories/lessons/stats:
+    get:
+      operationId: getLessonStats
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Aggregate lesson counts by type.
+                properties:
+                  by_type:
+                    additionalProperties:
+                      type: number
+                    type: object
+                  total_active:
+                    type: number
+                required:
+                  - total_active
+                  - by_type
+                type: object
+          description: Stats.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Lesson statistics for a user.
+      tags:
+        - Lessons
+  /v1/memories/lessons/{id}:
+    delete:
+      operationId: deactivateLesson
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Successful no-payload operation.
+                properties:
+                  success:
+                    enum:
+                      - true
+                    type: boolean
+                required:
+                  - success
+                type: object
+          description: Success.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Deactivate a lesson by id.
+      tags:
+        - Lessons
+  /v1/memories/list:
+    get:
+      operationId: listMemories
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: offset
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: workspace_id
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: agent_id
+          required: false
+          schema:
+            format: uuid
+            type: string
+        - in: query
+          name: source_site
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: episode_id
+          required: false
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Paginated memory list.
+                properties:
+                  count:
+                    type: number
+                  memories:
+                    items:
+                      additionalProperties: {}
+                      description: Full memory row as emitted by core.
+                      properties:
+                        access_count:
+                          type: number
+                        agent_id:
+                          type:
+                            - string
+                            - "null"
+                        content:
+                          type: string
+                        created_at:
+                          type: string
+                        deleted_at:
+                          type:
+                            - string
+                            - "null"
+                        embedding:
+                          items:
+                            type: number
+                          type: array
+                        episode_id:
+                          type:
+                            - string
+                            - "null"
+                        expired_at:
+                          type:
+                            - string
+                            - "null"
+                        id:
+                          type: string
+                        importance:
+                          type: number
+                        keywords:
+                          type: string
+                        last_accessed_at:
+                          type: string
+                        memory_type:
+                          type: string
+                        metadata:
+                          additionalProperties: {}
+                          type: object
+                        namespace:
+                          type:
+                            - string
+                            - "null"
+                        network: {}
+                        observation_subject:
+                          type:
+                            - string
+                            - "null"
+                        observed_at:
+                          type: string
+                        opinion_confidence:
+                          type:
+                            - number
+                            - "null"
+                        overview:
+                          type: string
+                        source_site:
+                          type: string
+                        source_url:
+                          type: string
+                        status:
+                          enum:
+                            - active
+                            - needs_clarification
+                          type: string
+                        summary:
+                          type: string
+                        trust_score:
+                          type: number
+                        user_id:
+                          type: string
+                        visibility:
+                          enum:
+                            - agent_only
+                            - restricted
+                            - workspace
+                            - null
+                          type:
+                            - string
+                            - "null"
+                        workspace_id:
+                          type:
+                            - string
+                            - "null"
+                      required:
+                        - id
+                        - user_id
+                        - content
+                        - embedding
+                        - memory_type
+                        - importance
+                        - source_site
+                        - source_url
+                        - status
+                        - metadata
+                        - keywords
+                        - summary
+                        - overview
+                        - trust_score
+                        - observed_at
+                        - created_at
+                        - last_accessed_at
+                        - access_count
+                      type: object
+                    type: array
+                required:
+                  - memories
+                  - count
+                type: object
+          description: Paginated memory list.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: List memories for a user (or workspace).
+      tags:
+        - Memories
+  /v1/memories/reconcile:
+    post:
+      operationId: reconcileDeferred
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                user_id:
+                  type: string
+              type: object
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Deferred-AUDN reconciliation counters.
+                properties:
+                  adds:
+                    type: number
+                  deletes:
+                    type: number
+                  duration_ms:
+                    type: number
+                  errors:
+                    type: number
+                  noops:
+                    type: number
+                  processed:
+                    type: number
+                  resolved:
+                    type: number
+                  supersedes:
+                    type: number
+                  updates:
+                    type: number
+                required:
+                  - processed
+                  - resolved
+                  - noops
+                  - updates
+                  - supersedes
+                  - deletes
+                  - adds
+                  - errors
+                  - duration_ms
+                type: object
+          description: Reconciliation result.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Reconcile deferred mutations for a user (or all users when user_id is absent).
+      tags:
+        - Lifecycle
+  /v1/memories/reconcile/status:
+    get:
+      operationId: getReconcileStatus
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                description: Current deferred-AUDN queue state.
+                properties:
+                  enabled:
+                    type: boolean
+                  pending:
+                    type: number
+                required:
+                  - pending
+                  - enabled
+                type: object
+          description: Status payload.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Get deferred-mutation reconciliation status.
+      tags:
+        - Lifecycle
+  /v1/memories/reset-source:
+    post:
+      operationId: resetBySource
+      requestBody:
+        content:
+          application/json:
+            schema:
+              properties:
+                source_site:
+                  description: Required. source_site.
+                  minLength: 1
+                  type: string
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+              required:
+                - user_id
+                - source_site
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Reset-by-source deletion counts.
+                properties:
+                  deleted_episodes:
+                    type: number
+                  deleted_memories:
+                    type: number
+                  success:
+                    enum:
+                      - true
+                    type: boolean
+                required:
+                  - success
+                  - deleted_memories
+                  - deleted_episodes
+                type: object
+          description: Reset result.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Delete all memories for a given user + source_site.
+      tags:
+        - Lifecycle
+  /v1/memories/search:
+    post:
+      operationId: searchMemories
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Search memories. User-scoped unless workspace_id + agent_id are both provided.
+              properties:
+                agent_id:
+                  description: Optional agent identifier. Silently dropped if empty / non-string.
+                  type: string
+                agent_scope:
+                  description: Agent-scope filter for workspace searches. String literal 'all' | 'self' | 'others' or a concrete agent_id. Array of agent_ids is also accepted. Any other value is silently ignored.
+                  example: all
+                  oneOf:
+                    - type: string
+                    - items:
+                        type: string
+                      type: array
+                as_of:
+                  description: ISO-8601 timestamp accepted by temporal search (as_of). Empty string or null means absent; any other non-ISO value is rejected with 400.
+                  example: 2026-01-15T12:00:00Z
+                  format: date-time
+                  type: string
+                config_override:
+                  additionalProperties:
+                    anyOf:
+                      - type: boolean
+                      - type: number
+                      - type: string
+                      - type: "null"
+                  description: "Optional per-request overlay on RuntimeConfig. Keys correspond to RuntimeConfig field names; values must be primitives (boolean / number / string / null). Unknown keys are accepted but surfaced via the X-Atomicmem-Unknown-Override-Keys response header and a server-side warning log — they do not cause a 400. Scope: just this request — no server mutation."
+                  type: object
+                limit:
+                  maximum: 100
+                  minimum: 1
+                  type: integer
+                namespace_scope:
+                  type: string
+                query:
+                  description: Required. query.
+                  minLength: 1
+                  type: string
+                retrieval_mode:
+                  enum:
+                    - flat
+                    - tiered
+                    - abstract-aware
+                  type: string
+                skip_repair:
+                  type: boolean
+                source_site:
+                  type: string
+                token_budget:
+                  maximum: 50000
+                  minimum: 100
+                  type: integer
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+                visibility:
+                  description: Visibility (one of agent_only / restricted / workspace). Invalid values silently drop to undefined.
+                  enum:
+                    - agent_only
+                    - restricted
+                    - workspace
+                  type: string
+                workspace_id:
+                  description: Optional workspace identifier. Silently dropped if empty / non-string.
+                  type: string
+              required:
+                - user_id
+                - query
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Search results with injection_text, citations, and optional traces.
+                properties:
+                  citations:
+                    items:
+                      type: string
+                    type: array
+                  consensus:
+                    properties:
+                      filtered_count:
+                        type: number
+                      original_count:
+                        type: number
+                      removed_count:
+                        type: number
+                      removed_memory_ids:
+                        items:
+                          type: string
+                        type: array
+                    required:
+                      - original_count
+                      - filtered_count
+                      - removed_count
+                      - removed_memory_ids
+                    type: object
+                  count:
+                    type: number
+                  estimated_context_tokens:
+                    type: number
+                  expand_ids:
+                    items:
+                      type: string
+                    type: array
+                  injection_text:
+                    type: string
+                  lesson_check:
+                    properties:
+                      highest_severity:
+                        type: string
+                      matched_count:
+                        type: number
+                      safe:
+                        type: boolean
+                      warnings:
+                        items: {}
+                        type: array
+                    required:
+                      - safe
+                      - warnings
+                      - highest_severity
+                      - matched_count
+                    type: object
+                  memories:
+                    items:
+                      description: Projected memory record in a search result.
+                      properties:
+                        content:
+                          type: string
+                        created_at:
+                          type: string
+                        id:
+                          type: string
+                        importance:
+                          type:
+                            - number
+                            - "null"
+                        score:
+                          type:
+                            - number
+                            - "null"
+                        similarity:
+                          type:
+                            - number
+                            - "null"
+                        source_site:
+                          type: string
+                      required:
+                        - id
+                        - content
+                      type: object
+                    type: array
+                  observability:
+                    description: Retrieval pipeline trace summaries.
+                    properties:
+                      assembly:
+                        properties:
+                          blocks:
+                            items:
+                              type: string
+                            type: array
+                          final_ids:
+                            items:
+                              type: string
+                            type: array
+                          final_token_cost:
+                            type: number
+                          primary_evidence_position:
+                            type:
+                              - number
+                              - "null"
+                          token_budget:
+                            type:
+                              - number
+                              - "null"
+                        required:
+                          - final_ids
+                          - final_token_cost
+                          - token_budget
+                          - primary_evidence_position
+                          - blocks
+                        type: object
+                      packaging:
+                        properties:
+                          date_count:
+                            type: number
+                          dropped_ids:
+                            items:
+                              type: string
+                            type: array
+                          episode_count:
+                            type: number
+                          evidence_roles:
+                            additionalProperties:
+                              enum:
+                                - primary
+                                - supporting
+                                - historical
+                                - contextual
+                              type: string
+                            type: object
+                          has_conflict_block:
+                            type: boolean
+                          has_current_marker:
+                            type: boolean
+                          included_ids:
+                            items:
+                              type: string
+                            type: array
+                          package_type:
+                            enum:
+                              - subject-pack
+                              - timeline-pack
+                              - tiered
+                            type: string
+                          token_cost:
+                            type: number
+                        required:
+                          - package_type
+                          - included_ids
+                          - dropped_ids
+                          - evidence_roles
+                          - episode_count
+                          - date_count
+                          - has_current_marker
+                          - has_conflict_block
+                          - token_cost
+                        type: object
+                      retrieval:
+                        properties:
+                          candidate_count:
+                            type: number
+                          candidate_ids:
+                            items:
+                              type: string
+                            type: array
+                          query_text:
+                            type: string
+                          skip_repair:
+                            type: boolean
+                          stage_count:
+                            type: number
+                          stage_names:
+                            items:
+                              type: string
+                            type: array
+                          trace_id:
+                            type: string
+                        required:
+                          - candidate_ids
+                          - candidate_count
+                          - query_text
+                          - skip_repair
+                        type: object
+                    type: object
+                  retrieval_mode:
+                    enum:
+                      - flat
+                      - tiered
+                      - abstract-aware
+                    type: string
+                  scope:
+                    anyOf:
+                      - properties:
+                          kind:
+                            enum:
+                              - user
+                            type: string
+                          user_id:
+                            type: string
+                        required:
+                          - kind
+                          - user_id
+                        type: object
+                      - properties:
+                          agent_id:
+                            type: string
+                          agent_scope: {}
+                          kind:
+                            enum:
+                              - workspace
+                            type: string
+                          user_id:
+                            type: string
+                          workspace_id:
+                            type: string
+                        required:
+                          - kind
+                          - user_id
+                          - workspace_id
+                          - agent_id
+                        type: object
+                    description: "Echoed scope: user-scoped or workspace-scoped."
+                  tier_assignments:
+                    items:
+                      properties:
+                        estimated_tokens:
+                          type: number
+                        memory_id:
+                          type: string
+                        tier:
+                          type: string
+                      required:
+                        - memory_id
+                        - tier
+                        - estimated_tokens
+                      type: object
+                    type: array
+                required:
+                  - count
+                  - retrieval_mode
+                  - scope
+                  - memories
+                type: object
+          description: Search results with injection_text and citations.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Full semantic search with optional temporal / retrieval-mode / token-budget controls.
+      tags:
+        - Memories
+  /v1/memories/search/fast:
+    post:
+      operationId: searchMemoriesFast
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: Search memories. User-scoped unless workspace_id + agent_id are both provided.
+              properties:
+                agent_id:
+                  description: Optional agent identifier. Silently dropped if empty / non-string.
+                  type: string
+                agent_scope:
+                  description: Agent-scope filter for workspace searches. String literal 'all' | 'self' | 'others' or a concrete agent_id. Array of agent_ids is also accepted. Any other value is silently ignored.
+                  example: all
+                  oneOf:
+                    - type: string
+                    - items:
+                        type: string
+                      type: array
+                as_of:
+                  description: ISO-8601 timestamp accepted by temporal search (as_of). Empty string or null means absent; any other non-ISO value is rejected with 400.
+                  example: 2026-01-15T12:00:00Z
+                  format: date-time
+                  type: string
+                config_override:
+                  additionalProperties:
+                    anyOf:
+                      - type: boolean
+                      - type: number
+                      - type: string
+                      - type: "null"
+                  description: "Optional per-request overlay on RuntimeConfig. Keys correspond to RuntimeConfig field names; values must be primitives (boolean / number / string / null). Unknown keys are accepted but surfaced via the X-Atomicmem-Unknown-Override-Keys response header and a server-side warning log — they do not cause a 400. Scope: just this request — no server mutation."
+                  type: object
+                limit:
+                  maximum: 100
+                  minimum: 1
+                  type: integer
+                namespace_scope:
+                  type: string
+                query:
+                  description: Required. query.
+                  minLength: 1
+                  type: string
+                retrieval_mode:
+                  enum:
+                    - flat
+                    - tiered
+                    - abstract-aware
+                  type: string
+                skip_repair:
+                  type: boolean
+                source_site:
+                  type: string
+                token_budget:
+                  maximum: 50000
+                  minimum: 100
+                  type: integer
+                user_id:
+                  description: Required. user_id.
+                  minLength: 1
+                  type: string
+                visibility:
+                  description: Visibility (one of agent_only / restricted / workspace). Invalid values silently drop to undefined.
+                  enum:
+                    - agent_only
+                    - restricted
+                    - workspace
+                  type: string
+                workspace_id:
+                  description: Optional workspace identifier. Silently dropped if empty / non-string.
+                  type: string
+              required:
+                - user_id
+                - query
+              type: object
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Search results with injection_text, citations, and optional traces.
+                properties:
+                  citations:
+                    items:
+                      type: string
+                    type: array
+                  consensus:
+                    properties:
+                      filtered_count:
+                        type: number
+                      original_count:
+                        type: number
+                      removed_count:
+                        type: number
+                      removed_memory_ids:
+                        items:
+                          type: string
+                        type: array
+                    required:
+                      - original_count
+                      - filtered_count
+                      - removed_count
+                      - removed_memory_ids
+                    type: object
+                  count:
+                    type: number
+                  estimated_context_tokens:
+                    type: number
+                  expand_ids:
+                    items:
+                      type: string
+                    type: array
+                  injection_text:
+                    type: string
+                  lesson_check:
+                    properties:
+                      highest_severity:
+                        type: string
+                      matched_count:
+                        type: number
+                      safe:
+                        type: boolean
+                      warnings:
+                        items: {}
+                        type: array
+                    required:
+                      - safe
+                      - warnings
+                      - highest_severity
+                      - matched_count
+                    type: object
+                  memories:
+                    items:
+                      description: Projected memory record in a search result.
+                      properties:
+                        content:
+                          type: string
+                        created_at:
+                          type: string
+                        id:
+                          type: string
+                        importance:
+                          type:
+                            - number
+                            - "null"
+                        score:
+                          type:
+                            - number
+                            - "null"
+                        similarity:
+                          type:
+                            - number
+                            - "null"
+                        source_site:
+                          type: string
+                      required:
+                        - id
+                        - content
+                      type: object
+                    type: array
+                  observability:
+                    description: Retrieval pipeline trace summaries.
+                    properties:
+                      assembly:
+                        properties:
+                          blocks:
+                            items:
+                              type: string
+                            type: array
+                          final_ids:
+                            items:
+                              type: string
+                            type: array
+                          final_token_cost:
+                            type: number
+                          primary_evidence_position:
+                            type:
+                              - number
+                              - "null"
+                          token_budget:
+                            type:
+                              - number
+                              - "null"
+                        required:
+                          - final_ids
+                          - final_token_cost
+                          - token_budget
+                          - primary_evidence_position
+                          - blocks
+                        type: object
+                      packaging:
+                        properties:
+                          date_count:
+                            type: number
+                          dropped_ids:
+                            items:
+                              type: string
+                            type: array
+                          episode_count:
+                            type: number
+                          evidence_roles:
+                            additionalProperties:
+                              enum:
+                                - primary
+                                - supporting
+                                - historical
+                                - contextual
+                              type: string
+                            type: object
+                          has_conflict_block:
+                            type: boolean
+                          has_current_marker:
+                            type: boolean
+                          included_ids:
+                            items:
+                              type: string
+                            type: array
+                          package_type:
+                            enum:
+                              - subject-pack
+                              - timeline-pack
+                              - tiered
+                            type: string
+                          token_cost:
+                            type: number
+                        required:
+                          - package_type
+                          - included_ids
+                          - dropped_ids
+                          - evidence_roles
+                          - episode_count
+                          - date_count
+                          - has_current_marker
+                          - has_conflict_block
+                          - token_cost
+                        type: object
+                      retrieval:
+                        properties:
+                          candidate_count:
+                            type: number
+                          candidate_ids:
+                            items:
+                              type: string
+                            type: array
+                          query_text:
+                            type: string
+                          skip_repair:
+                            type: boolean
+                          stage_count:
+                            type: number
+                          stage_names:
+                            items:
+                              type: string
+                            type: array
+                          trace_id:
+                            type: string
+                        required:
+                          - candidate_ids
+                          - candidate_count
+                          - query_text
+                          - skip_repair
+                        type: object
+                    type: object
+                  retrieval_mode:
+                    enum:
+                      - flat
+                      - tiered
+                      - abstract-aware
+                    type: string
+                  scope:
+                    anyOf:
+                      - properties:
+                          kind:
+                            enum:
+                              - user
+                            type: string
+                          user_id:
+                            type: string
+                        required:
+                          - kind
+                          - user_id
+                        type: object
+                      - properties:
+                          agent_id:
+                            type: string
+                          agent_scope: {}
+                          kind:
+                            enum:
+                              - workspace
+                            type: string
+                          user_id:
+                            type: string
+                          workspace_id:
+                            type: string
+                        required:
+                          - kind
+                          - user_id
+                          - workspace_id
+                          - agent_id
+                        type: object
+                    description: "Echoed scope: user-scoped or workspace-scoped."
+                  tier_assignments:
+                    items:
+                      properties:
+                        estimated_tokens:
+                          type: number
+                        memory_id:
+                          type: string
+                        tier:
+                          type: string
+                      required:
+                        - memory_id
+                        - tier
+                        - estimated_tokens
+                      type: object
+                    type: array
+                required:
+                  - count
+                  - retrieval_mode
+                  - scope
+                  - memories
+                type: object
+          description: Search results.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Latency-optimized search (skips LLM repair loop). ~88% lower latency than /search.
+      tags:
+        - Memories
+  /v1/memories/stats:
+    get:
+      operationId: getStats
+      parameters:
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Aggregate memory stats for a user.
+                properties:
+                  avg_importance:
+                    type: number
+                  count:
+                    type: number
+                  source_distribution:
+                    additionalProperties:
+                      type: number
+                    type: object
+                required:
+                  - count
+                  - avg_importance
+                  - source_distribution
+                type: object
+          description: Stats payload.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Aggregate memory statistics for a user.
+      tags:
+        - Memories
+  /v1/memories/{id}:
+    delete:
+      operationId: deleteMemory
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            format: uuid
+            type: string
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+        - in: query
+          name: workspace_id
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: agent_id
+          required: false
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Successful no-payload operation.
+                properties:
+                  success:
+                    enum:
+                      - true
+                    type: boolean
+                required:
+                  - success
+                type: object
+          description: Deletion success.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "404":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Memory not found
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Delete a single memory by UUID.
+      tags:
+        - Memories
+    get:
+      operationId: getMemory
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            format: uuid
+            type: string
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+        - in: query
+          name: workspace_id
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: agent_id
+          required: false
+          schema:
+            format: uuid
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                additionalProperties: {}
+                description: Full memory row as emitted by core.
+                properties:
+                  access_count:
+                    type: number
+                  agent_id:
+                    type:
+                      - string
+                      - "null"
+                  content:
+                    type: string
+                  created_at:
+                    type: string
+                  deleted_at:
+                    type:
+                      - string
+                      - "null"
+                  embedding:
+                    items:
+                      type: number
+                    type: array
+                  episode_id:
+                    type:
+                      - string
+                      - "null"
+                  expired_at:
+                    type:
+                      - string
+                      - "null"
+                  id:
+                    type: string
+                  importance:
+                    type: number
+                  keywords:
+                    type: string
+                  last_accessed_at:
+                    type: string
+                  memory_type:
+                    type: string
+                  metadata:
+                    additionalProperties: {}
+                    type: object
+                  namespace:
+                    type:
+                      - string
+                      - "null"
+                  network: {}
+                  observation_subject:
+                    type:
+                      - string
+                      - "null"
+                  observed_at:
+                    type: string
+                  opinion_confidence:
+                    type:
+                      - number
+                      - "null"
+                  overview:
+                    type: string
+                  source_site:
+                    type: string
+                  source_url:
+                    type: string
+                  status:
+                    enum:
+                      - active
+                      - needs_clarification
+                    type: string
+                  summary:
+                    type: string
+                  trust_score:
+                    type: number
+                  user_id:
+                    type: string
+                  visibility:
+                    enum:
+                      - agent_only
+                      - restricted
+                      - workspace
+                      - null
+                    type:
+                      - string
+                      - "null"
+                  workspace_id:
+                    type:
+                      - string
+                      - "null"
+                required:
+                  - id
+                  - user_id
+                  - content
+                  - embedding
+                  - memory_type
+                  - importance
+                  - source_site
+                  - source_url
+                  - status
+                  - metadata
+                  - keywords
+                  - summary
+                  - overview
+                  - trust_score
+                  - observed_at
+                  - created_at
+                  - last_accessed_at
+                  - access_count
+                type: object
+          description: Memory object.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "404":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Memory not found
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Fetch a single memory by UUID.
+      tags:
+        - Memories
+  /v1/memories/{id}/audit:
+    get:
+      operationId: getMemoryAuditTrail
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            format: uuid
+            type: string
+        - in: query
+          name: user_id
+          required: true
+          schema:
+            minLength: 1
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: Full version trail for a single memory.
+                properties:
+                  memory_id:
+                    type: string
+                  trail:
+                    items:
+                      description: Single entry in a memory's audit trail.
+                      properties:
+                        actor_model:
+                          type:
+                            - string
+                            - "null"
+                        claim_id:
+                          type: string
+                        content:
+                          type: string
+                        contradiction_confidence:
+                          type:
+                            - number
+                            - "null"
+                        memory_id:
+                          type:
+                            - string
+                            - "null"
+                        mutation_reason:
+                          type:
+                            - string
+                            - "null"
+                        mutation_type:
+                          enum:
+                            - add
+                            - update
+                            - supersede
+                            - delete
+                            - clarify
+                            - null
+                          type:
+                            - string
+                            - "null"
+                        previous_version_id:
+                          type:
+                            - string
+                            - "null"
+                        superseded_by_version_id:
+                          type:
+                            - string
+                            - "null"
+                        valid_from:
+                          type: string
+                        valid_to:
+                          type:
+                            - string
+                            - "null"
+                        version_id:
+                          type: string
+                      required:
+                        - version_id
+                        - claim_id
+                        - content
+                        - mutation_type
+                        - mutation_reason
+                        - actor_model
+                        - contradiction_confidence
+                        - previous_version_id
+                        - superseded_by_version_id
+                        - valid_from
+                        - valid_to
+                        - memory_id
+                      type: object
+                    type: array
+                  version_count:
+                    type: number
+                required:
+                  - memory_id
+                  - trail
+                  - version_count
+                type: object
+          description: Audit trail.
+        "400":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Input validation error
+        "500":
+          content:
+            application/json:
+              schema:
+                description: Standard error envelope. 400 for input validation errors, 500 for uncaught exceptions.
+                example:
+                  error: user_id is required
+                properties:
+                  error:
+                    type: string
+                required:
+                  - error
+                type: object
+          description: Internal server error
+      summary: Per-memory version history.
+      tags:
+        - Audit
+servers:
+  - description: Local development server
+    url: http://localhost:3050
+webhooks: {}

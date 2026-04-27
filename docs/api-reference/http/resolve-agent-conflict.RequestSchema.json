@@ -1,0 +1,1 @@
+{"title":"Body","body":{"content":{"application/json":{"schema":{"description":"Resolve a specific conflict with one of the three enum variants.","properties":{"resolution":{"enum":["resolved_new","resolved_existing","resolved_both"],"type":"string"}},"required":["resolution"],"type":"object"}}},"required":true}}

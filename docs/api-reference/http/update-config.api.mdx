@@ -1,0 +1,67 @@
+---
+id: update-config
+title: "Mutate runtime config (dev/test only). 410 when disabled."
+description: "Set CORE_RUNTIME_CONFIG_MUTATION_ENABLED=true to enable. Startup-only fields (embedding_provider/model, voyage_api_key, voyage_document_model, voyage_query_model, llm_provider/model) return 400 with a `rejected` array listing the offending fields."
+sidebar_label: "Mutate runtime config (dev/test only). 410 when disabled."
+hide_title: true
+hide_table_of_contents: true
+api: eJzlWM1y2zYQfpUdnJoJI8ptcmGnByV1UnX8N7Z88ngYiFiRSECAAUDZGo1m+hB9wj5JZ0FKpiRKcZJb65NJLfb/+3bBJRPoMisrL41mCbtBD+8ur0/T69uLyfj8NH13efF+/CE9v52MJuPLi/T0YvT27PT337ytEbwB1HyqcAA3nltfV6+MVguYSVTCwU9YTlEIqfO0smYuBdq4NAJVBHOz4DmmvJLpZ1xsnoXJ6hK1T7fFvtRoF+t3SpU76l6ARV9bDa+HQ3iQvgAOHy1+wsyj+AjcWr4AJZ2XOgdfIJjZDDX51Xo6YBEzFVpOWRgLlrC6EtzjO6NnMmcRs/ilRuffGrFgyZJlRnvUnv7lVaVkFg7GnxzlcMlcVmDJw69CSPqJqytLBrxEx5LlKtpJ+3WtvSwRsmAQytoHjQO4QYSCa6HQwsxYeH0yBK4FrKO7u4eK+yJEUO2Y8IsKWcLMlETZarVq4pAWBUuofuGFq4x24Qj7eTj8pui2YxiRLIp1DE0GHbyEWa0UVMb5V807cJpXrjB+z+nGHrm3ZNJjGd61YThvpc7ZU1yhrPTcGNx3aCepa6tts6CA6QLiArnyBbyEuBHr8SlH7WWWWvRW4pyrtOl50XFuaoxCroM3ils5a5OWklIlM5/6wqIrjOqe0nU5RRsOWeNcijozAu1x/U+YCr3fm6F93PWLaS/9Is0tr4rjRovF1EqROuQ2+4qo9AFHc3xuwgjPh0Ppor1XoOSPa78sulp515thixWXNlXGVMfdefK6smYmFfZa7eWrY5IdCusR24LmXY8PvTXdb4ZDjvW6sZPcbiWe0ca9mT/UKcfb4kAnHoJFdASS/YW+3yPDiGnj+0q7U4k1IW1Ypj24r3G1R+obQiy4zgMT7jDRgPx4/Y2kazRezlhyt8t2N55rwa0AtNZYQD1HZSochKFIo0PqqvYw50qKoLsRdBG8aQVqnfE6LzzgY4ZBbRgr+MjLqoFBOEHT0aFNpQDpYJOs1S5vtsJfy3AjtpfPiHnpySo7JYG33MmMraI9jpdZgTbEuI44xHJ1O4F4fhKXWBor0bXsDg8FanA9uwq3CFJnqhYodqIW6LlULGHvG9F9JELGtTYeptiMbhTAPdh2/vzz199h69ici8/OzqFzNiuwcWAmH5ujM2mdh9phcKXN+tXW0gMOFWahkNJthRRA0KwHIcH7xHG/V6x1jH1T4kAdu1aeP657qx+t7Xd0fq0jmt2M0LO67wHfuLfb4fK6t/oPaBFc3QC2geXJj+xCtKZ9MBq/oSnX3bLe/aiqQrpAYIca8ju39R5bGgTOY4/Ok8vSGk3Tw2213wHvyU+sLGah7ynOyhpRh9bcZ4XvaLTjLfMcJj6wXndTTCl48ju0wJsfWof/Y3zcCzGPVnNiIjtH2/gf9HmeO9LVYLRu7lWks0RfGLpfVTUBmq4uLGE9XcUi1mh1PaPuzGRcUcNSRqlPWw9YxGpLuCi8r5I4ViRXGOeTX4ZviCciRlW7frrMnW5ySZurnpmeOmLJadmA4OECUOdSN3gejaHTEW4AreZ4fauCqRGy5fY/by4vfl3zjdFhIjxIi8TytBF8xjTjDeErmaF2ocKal1SE8/FkKziXxLGpUDtT2wwHxuZxe8jFJLt6IsuRN6XMzhvn/5hMrmB0NaaFEK1rIjwZDAfD0C/G+ZLrrt0wzTZ80eLnpw1XEIe+GIRbaSCxLmFtpbEDo//xN4YWUh4ffVwpLgM/hqouWyzcsfkJrdYtGp72zvuIUSeTxHI55Q5vrVqt6HVwnCV39xGbcyspVfREtzbk4dZ0t2SfccESwiPV4NWE/CBxVYfRvEtrtGc1J0YZUc9R2S6sr26pT6ftZxJKHEuY5Q802PkDS1j40BLQQgLh3ZIprvOa5yTbqKS/fwG+P5gw
+sidebar_class_name: "put api-method"
+info_path: api-reference/http/atomicmemory-http-api
+custom_edit_url: null
+---
+
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import ParamsDetails from "@theme/ParamsDetails";
+import RequestSchema from "@theme/RequestSchema";
+import StatusCodes from "@theme/StatusCodes";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+import Heading from "@theme/Heading";
+import Translate from "@docusaurus/Translate";
+
+<Heading
+  as={"h1"}
+  className={"openapi__heading"}
+  children={"Mutate runtime config (dev/test only). 410 when disabled."}
+>
+</Heading>
+
+<MethodEndpoint
+  method={"put"}
+  path={"/v1/memories/config"}
+  context={"endpoint"}
+>
+  
+</MethodEndpoint>
+
+
+
+Set CORE_RUNTIME_CONFIG_MUTATION_ENABLED=true to enable. Startup-only fields (embedding_provider/model, voyage_api_key, voyage_document_model, voyage_query_model, llm_provider/model) return 400 with a `rejected` array listing the offending fields.
+
+<Heading
+  id={"request"}
+  as={"h2"}
+  className={"openapi-tabs__heading"}
+>
+  <Translate id="theme.openapi.request.title">Request</Translate>
+</Heading>
+
+<ParamsDetails>
+  
+</ParamsDetails>
+
+<RequestSchema
+  {...require("./update-config.RequestSchema.json")}
+>
+  
+</RequestSchema>
+
+<StatusCodes
+  {...require("./update-config.StatusCodes.json")}
+>
+  
+</StatusCodes>
+
+
+      
