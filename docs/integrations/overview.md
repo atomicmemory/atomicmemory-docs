@@ -23,9 +23,9 @@ Agents that edit code, run shells, and drive browsers need memory that survives 
 | [Claude Code](/integrations/coding-agents/claude-code) | 🔧 Source available¹ | Local marketplace (`plugin.json` + `SKILL.md`) | [`plugins/claude-code`](https://github.com/atomicmemory/atomicmemory-integrations/tree/main/plugins/claude-code) |
 | [OpenClaw](/integrations/coding-agents/openclaw) | 🔧 Source available¹ | Local install (`openclaw.plugin.json` + `skill.yaml`) | [`plugins/openclaw`](https://github.com/atomicmemory/atomicmemory-integrations/tree/main/plugins/openclaw) |
 | [Codex](/integrations/coding-agents/codex) | 🔧 Source available¹ | Local marketplace (`.codex-plugin/` + `.codex-mcp.json`) | [`plugins/codex`](https://github.com/atomicmemory/atomicmemory-integrations/tree/main/plugins/codex) |
-| [Cursor](/integrations/coding-agents/cursor) | 🛠️ Planned | MCP server + `.cursor/rules` | — |
+| [Cursor](/integrations/coding-agents/cursor) | 🔧 Source available¹ | Project/global MCP config + `.cursor/rules` | [`plugins/cursor`](https://github.com/atomicmemory/atomicmemory-integrations/tree/main/plugins/cursor) |
 
-¹ Plugin manifest and skill files are committed to the integrations repo. Nothing is published to a public plugin marketplace — see each integration page for the clone-and-install steps.
+¹ Integration manifests, skills, rules, and config templates are committed to the integrations repo. Nothing is published to a public plugin marketplace — see each integration page for the clone-and-install steps.
 
 ## Frameworks
 
