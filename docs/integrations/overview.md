@@ -36,7 +36,7 @@ Framework integrations expose AtomicMemory as the memory primitive inside an age
 | [Vercel AI SDK](/integrations/frameworks/vercel-ai-sdk) | 🔧 Source-only | `@atomicmemory/vercel-ai` |
 | [LangChain (JS)](/integrations/frameworks/langchain-js) | 🛠️ Planned | `@atomicmemory/langchain` |
 | [Mastra](/integrations/frameworks/mastra) | 🛠️ Planned | `@atomicmemory/mastra` |
-| [OpenAI Agents SDK](/integrations/frameworks/openai-agents) | 🛠️ Planned | `@atomicmemory/openai-agents` |
+| [OpenAI Agents SDK](/integrations/frameworks/openai-agents) | 🔧 Source-only | `@atomicmemory/openai-agents` |
 | [LangGraph (JS)](/integrations/frameworks/langgraph-js) | 🛠️ Planned | `@atomicmemory/langgraph` |
 
 ## Choosing a backend
